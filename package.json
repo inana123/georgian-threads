@@ -1,0 +1,25 @@
+{
+  "name": "georgian-threads",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "dev:api": "pnpm --filter @gt/api dev",
+    "dev:web": "pnpm --filter @gt/web dev",
+    "db:migrate": "pnpm --filter @gt/api prisma:migrate",
+    "db:seed": "pnpm --filter @gt/api seed",
+    "db:studio": "pnpm --filter @gt/api prisma:studio"
+  },
+  "packageManager": "pnpm@10.33.2",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "sharp",
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma",
+      "esbuild",
+      "protobufjs",
+      "onnxruntime-node"
+    ]
+  }
+}

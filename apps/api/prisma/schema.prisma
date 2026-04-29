@@ -1,0 +1,137 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  passwordHash  String
+  username      String         @unique
+  displayName   String?
+  bio           String?
+  avatarUrl     String?
+  city          String?
+  createdAt     DateTime       @default(now())
+  items         Item[]
+  favorites     Favorite[]
+  sentMessages  Message[]      @relation("Sender")
+  conversationsAsBuyer  Conversation[] @relation("Buyer")
+  conversationsAsSeller Conversation[] @relation("Seller")
+  reviewsGiven  Review[]       @relation("Reviewer")
+  reviewsGotten Review[]       @relation("Reviewee")
+  follows       Follow[]       @relation("Follower")
+  followers     Follow[]       @relation("Following")
+}
+
+model Category {
+  id       String     @id @default(cuid())
+  name     String
+  nameKa   String
+  slug     String     @unique
+  parentId String?
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryTree")
+  items    Item[]
+}
+
+model Item {
+  id          String     @id @default(cuid())
+  title       String
+  description String
+  priceGel    Int        // in tetri (cents) — store as integer
+  size        String?
+  brand       String?
+  condition   String     // "new", "like_new", "good", "fair"
+  color       String?
+  status      String     @default("active") // active, sold, reserved, hidden
+  sellerId    String
+  seller      User       @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  categoryId  String
+  category    Category   @relation(fields: [categoryId], references: [id])
+  images      Image[]
+  favorites   Favorite[]
+  conversations Conversation[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([sellerId])
+  @@index([categoryId])
+  @@index([status])
+}
+
+model Image {
+  id            String  @id @default(cuid())
+  url           String
+  itemId        String
+  item          Item    @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  order         Int     @default(0)
+  phash         String? // 64-bit perceptual hash hex (16 chars) for visual search
+  dominantR     Int?
+  dominantG     Int?
+  dominantB     Int?
+  embedding     String? // JSON-encoded CLIP embedding (512 floats) for semantic search
+}
+
+model Favorite {
+  id     String @id @default(cuid())
+  userId String
+  itemId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item   Item   @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, itemId])
+}
+
+model Conversation {
+  id        String    @id @default(cuid())
+  itemId    String
+  buyerId   String
+  sellerId  String
+  item      Item      @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  buyer     User      @relation("Buyer", fields: [buyerId], references: [id])
+  seller    User      @relation("Seller", fields: [sellerId], references: [id])
+  messages  Message[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([itemId, buyerId])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  senderId       String
+  body           String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation("Sender", fields: [senderId], references: [id])
+  createdAt      DateTime     @default(now())
+  readAt         DateTime?
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  reviewerId  String
+  revieweeId  String
+  rating      Int
+  body        String?
+  reviewer    User     @relation("Reviewer", fields: [reviewerId], references: [id])
+  reviewee    User     @relation("Reviewee", fields: [revieweeId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  follower    User     @relation("Follower", fields: [followerId], references: [id])
+  following   User     @relation("Following", fields: [followingId], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+}
