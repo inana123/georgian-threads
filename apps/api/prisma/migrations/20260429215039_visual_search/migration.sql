@@ -1,5 +1,0 @@
--- AlterTable
-ALTER TABLE "Image" ADD COLUMN "dominantB" INTEGER;
-ALTER TABLE "Image" ADD COLUMN "dominantG" INTEGER;
-ALTER TABLE "Image" ADD COLUMN "dominantR" INTEGER;
-ALTER TABLE "Image" ADD COLUMN "phash" TEXT;
