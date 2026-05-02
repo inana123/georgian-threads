@@ -21,7 +21,11 @@ fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 const app = Fastify({ logger: true });
 
-await app.register(cors, { origin: true, credentials: true });
+// CORS: allow CORS_ORIGINS (comma-separated) in prod, anything in dev
+const corsOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(",").map((s) => s.trim())
+  : true;
+await app.register(cors, { origin: corsOrigins, credentials: true });
 await app.register(jwt, { secret: process.env.JWT_SECRET ?? "dev-secret" });
 await app.register(multipart, { limits: { fileSize: 10 * 1024 * 1024 } });
 await app.register(fastifyStatic, {
